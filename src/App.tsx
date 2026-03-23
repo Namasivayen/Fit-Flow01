@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AdminRoute from "@/components/AdminRoute";
+import AppLayout from "@/components/AppLayout";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -16,11 +18,17 @@ import Roadmaps from "./pages/Roadmaps";
 import Workout from "./pages/Workout";
 import Readiness from "./pages/Readiness";
 import AIChat from "./pages/AIChat";
+import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
-import AdminRoute from "@/components/AdminRoute";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+const ProtectedWithLayout = ({ children }: { children: React.ReactNode }) => (
+  <ProtectedRoute>
+    <AppLayout>{children}</AppLayout>
+  </ProtectedRoute>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -36,12 +44,13 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/roadmaps" element={<ProtectedRoute><Roadmaps /></ProtectedRoute>} />
-            <Route path="/workout" element={<ProtectedRoute><Workout /></ProtectedRoute>} />
-            <Route path="/readiness" element={<ProtectedRoute><Readiness /></ProtectedRoute>} />
-            <Route path="/chat" element={<ProtectedRoute><AIChat /></ProtectedRoute>} />
-            <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+            <Route path="/dashboard" element={<ProtectedWithLayout><Dashboard /></ProtectedWithLayout>} />
+            <Route path="/roadmaps" element={<ProtectedWithLayout><Roadmaps /></ProtectedWithLayout>} />
+            <Route path="/workout" element={<ProtectedWithLayout><Workout /></ProtectedWithLayout>} />
+            <Route path="/readiness" element={<ProtectedWithLayout><Readiness /></ProtectedWithLayout>} />
+            <Route path="/chat" element={<ProtectedWithLayout><AIChat /></ProtectedWithLayout>} />
+            <Route path="/profile" element={<ProtectedWithLayout><Profile /></ProtectedWithLayout>} />
+            <Route path="/admin" element={<AdminRoute><AppLayout><Admin /></AppLayout></AdminRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
