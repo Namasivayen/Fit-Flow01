@@ -4,11 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dumbbell, Map, Activity, MessageSquare, LogOut, User } from "lucide-react";
+import { Dumbbell, Map, Activity, MessageSquare } from "lucide-react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user, signOut, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
 
@@ -42,11 +42,6 @@ const Dashboard = () => {
     );
   }
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/");
-  };
-
   const quickActions = [
     { title: "Roadmaps", description: "Browse fitness plans", icon: Map, color: "bg-primary/10 text-primary", path: "/roadmaps" },
     { title: "Today's Workout", description: "Start training", icon: Dumbbell, color: "bg-accent/10 text-accent", path: "/workout" },
@@ -55,28 +50,9 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-40">
-        <div className="container flex items-center justify-between h-16">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Dumbbell className="w-5 h-5 text-primary" />
-            </div>
-            <span className="font-display font-bold text-foreground text-lg">GuideStride</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/profile")}>
-              <User className="w-5 h-5" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={handleSignOut}>
-              <LogOut className="w-5 h-5" />
-            </Button>
-          </div>
-        </div>
-      </header>
+    <div className="bg-background">
 
-      <main className="container py-8 space-y-8">
+      <div className="container py-8 space-y-8">
         {/* Welcome */}
         <div className="animate-fade-up">
           <h1 className="text-2xl font-display font-bold text-foreground">
@@ -121,7 +97,7 @@ const Dashboard = () => {
             </Button>
           </CardContent>
         </Card>
-      </main>
+      </div>
     </div>
   );
 };

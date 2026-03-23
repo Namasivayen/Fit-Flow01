@@ -14,17 +14,12 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
 import {
-  ArrowLeft,
   Plus,
   Dumbbell,
   Route,
   Users,
   BarChart3,
-  Pencil,
-  Eye,
-  EyeOff,
 } from "lucide-react";
 
 // ── Exercises Tab ──────────────────────────────────────────────
@@ -364,20 +359,11 @@ function StatsTab() {
 // ── Main Admin Page ────────────────────────────────────────────
 
 export default function Admin() {
-  const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-30">
-        <div className="container mx-auto flex items-center gap-3 h-14 px-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-lg font-semibold">Admin Panel</h1>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-6 max-w-4xl space-y-6">
+    <div className="bg-background">
+      <div className="container mx-auto px-4 py-6 max-w-4xl space-y-6">
+        <h1 className="text-xl font-display font-bold">Admin Panel</h1>
         <StatsTab />
 
         <Tabs defaultValue="roadmaps" className="space-y-4">
@@ -390,7 +376,7 @@ export default function Admin() {
           <TabsContent value="exercises"><ExercisesTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
         </Tabs>
-      </main>
+      </div>
     </div>
   );
 }
