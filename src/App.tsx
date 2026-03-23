@@ -41,6 +41,7 @@ const App = () => (
             <Route path="/workout" element={<ProtectedRoute><Workout /></ProtectedRoute>} />
             <Route path="/readiness" element={<ProtectedRoute><Readiness /></ProtectedRoute>} />
             <Route path="/chat" element={<ProtectedRoute><AIChat /></ProtectedRoute>} />
+            <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
