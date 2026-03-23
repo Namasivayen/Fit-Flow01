@@ -359,7 +359,6 @@ function StatsTab() {
 // ── Main Admin Page ────────────────────────────────────────────
 
 export default function Admin() {
-  const navigate = useNavigate();
 
   return (
     <div className="bg-background">
