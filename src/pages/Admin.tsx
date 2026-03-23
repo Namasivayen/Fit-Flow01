@@ -14,17 +14,12 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
 import {
-  ArrowLeft,
   Plus,
   Dumbbell,
   Route,
   Users,
   BarChart3,
-  Pencil,
-  Eye,
-  EyeOff,
 } from "lucide-react";
 
 // ── Exercises Tab ──────────────────────────────────────────────

@@ -8,7 +8,7 @@ import { Dumbbell, Map, Activity, MessageSquare } from "lucide-react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user, signOut, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
 
