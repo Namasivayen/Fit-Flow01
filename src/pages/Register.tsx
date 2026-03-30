@@ -31,11 +31,20 @@ const Register = () => {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email,
       password,
       options: { emailRedirectTo: window.location.origin },
     });
+
+    // Save phone number to profile if provided
+    if (!error && signUpData.user && phoneNumber.trim()) {
+      const normalized = phoneNumber.replace(/[\s\-()]/g, "");
+      await supabase
+        .from("user_profiles")
+        .update({ phone_number: normalized })
+        .eq("user_id", signUpData.user.id);
+    }
 
     if (error) {
       toast({ title: "Registration failed", description: error.message, variant: "destructive" });
