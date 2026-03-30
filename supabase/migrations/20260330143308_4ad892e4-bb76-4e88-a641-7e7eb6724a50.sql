@@ -1,0 +1,1 @@
+ALTER TABLE public.otp_codes ENABLE ROW LEVEL SECURITY;
