@@ -6,27 +6,102 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import { Dumbbell, Mail, Lock } from "lucide-react";
+import { Dumbbell, Mail, Lock, Phone } from "lucide-react";
+import { getDeviceFingerprint } from "@/lib/device-fingerprint";
+import OTPVerification from "@/components/OTPVerification";
+
+type LoginStep = "credentials" | "otp";
+
+const isEmail = (input: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
+const isPhone = (input: string) => /^\+?[\d\s\-()]{7,15}$/.test(input.trim());
 
 const Login = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState<LoginStep>("credentials");
+  const [userEmail, setUserEmail] = useState("");
+
+  const inputType = isEmail(identifier) ? "email" : isPhone(identifier) ? "phone" : "unknown";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    try {
+      let email = identifier;
 
-    if (error) {
-      toast({ title: "Login failed", description: error.message, variant: "destructive" });
-    } else {
-      navigate("/dashboard");
+      // If phone number, look up the associated email
+      if (inputType === "phone") {
+        const { data, error } = await supabase.functions.invoke("lookup-user-by-phone", {
+          body: { phone: identifier },
+        });
+        if (error || !data?.email) {
+          toast({ title: "Login failed", description: "Invalid credentials", variant: "destructive" });
+          setLoading(false);
+          return;
+        }
+        email = data.email;
+      } else if (inputType !== "email") {
+        toast({ title: "Invalid input", description: "Enter a valid email or phone number", variant: "destructive" });
+        setLoading(false);
+        return;
+      }
+
+      // Attempt password login
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        toast({ title: "Login failed", description: signInError.message, variant: "destructive" });
+        setLoading(false);
+        return;
+      }
+
+      setUserEmail(email);
+
+      // Check if device is trusted
+      const fingerprint = await getDeviceFingerprint();
+      const { data: deviceData } = await supabase.functions.invoke("check-device", {
+        body: { deviceFingerprint: fingerprint },
+      });
+
+      if (deviceData?.trusted) {
+        // Device is trusted, proceed directly
+        navigate("/dashboard");
+      } else {
+        // New device — require OTP
+        setStep("otp");
+      }
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Something went wrong", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
+
+  const handleOTPVerified = () => {
+    navigate("/dashboard");
+  };
+
+  const handleOTPCancel = async () => {
+    await supabase.auth.signOut();
+    setStep("credentials");
+    setUserEmail("");
+  };
+
+  if (step === "otp") {
+    return (
+      <OTPVerification
+        userEmail={userEmail}
+        onVerified={handleOTPVerified}
+        onCancel={handleOTPCancel}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
@@ -42,24 +117,33 @@ const Login = () => {
         <Card className="shadow-lg border-border/50">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg font-display">Sign In</CardTitle>
-            <CardDescription>Enter your credentials below</CardDescription>
+            <CardDescription>Use your email or phone number</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="identifier">Email or Phone</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  {inputType === "phone" ? (
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  ) : (
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  )}
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    id="identifier"
+                    type="text"
+                    placeholder="you@example.com or +1234567890"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
                     className="pl-10"
                     required
                   />
                 </div>
+                {identifier && inputType !== "unknown" && (
+                  <p className="text-xs text-muted-foreground">
+                    Detected: {inputType === "email" ? "📧 Email" : "📱 Phone number"}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">

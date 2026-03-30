@@ -6,13 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import { Dumbbell, Mail, Lock, User } from "lucide-react";
+import { Dumbbell, Mail, Lock, Phone } from "lucide-react";
 
 const Register = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -30,11 +31,20 @@ const Register = () => {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email,
       password,
       options: { emailRedirectTo: window.location.origin },
     });
+
+    // Save phone number to profile if provided
+    if (!error && signUpData.user && phoneNumber.trim()) {
+      const normalized = phoneNumber.replace(/[\s\-()]/g, "");
+      await supabase
+        .from("user_profiles")
+        .update({ phone_number: normalized })
+        .eq("user_id", signUpData.user.id);
+    }
 
     if (error) {
       toast({ title: "Registration failed", description: error.message, variant: "destructive" });
@@ -78,6 +88,20 @@ const Register = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10"
                     required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number <span className="text-muted-foreground text-xs">(optional)</span></Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="+1234567890"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="pl-10"
                   />
                 </div>
               </div>
