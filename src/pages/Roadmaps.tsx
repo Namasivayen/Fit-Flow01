@@ -182,9 +182,9 @@ const Roadmaps = () => {
                     className="w-full"
                     variant={activeRoadmap?.roadmap_id === rm.id ? "secondary" : "default"}
                     disabled={activeRoadmap?.roadmap_id === rm.id}
-                    onClick={() => activateRoadmap(rm.id)}
+                    onClick={() => handleStartPlan(rm.id)}
                   >
-                    {activeRoadmap?.roadmap_id === rm.id ? "Currently Active" : "Start This Plan"}
+                    {activeRoadmap?.roadmap_id === rm.id ? "Currently Active" : activeRoadmap ? "Switch to This Plan" : "Start This Plan"}
                   </Button>
                 </CardContent>
               </Card>
