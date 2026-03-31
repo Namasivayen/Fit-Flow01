@@ -192,6 +192,24 @@ const Roadmaps = () => {
           </div>
         )}
       </main>
+
+      {/* Switch Roadmap Confirmation */}
+      <AlertDialog open={!!switchTarget} onOpenChange={(open) => !open && setSwitchTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Switch Roadmap?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your current plan progress ({activeRoadmap?.fitness_roadmaps?.title} — Day {activeRoadmap?.current_day}) will be saved but marked as inactive. You'll start the new plan from Day 1.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep Current Plan</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { if (switchTarget) activateRoadmap(switchTarget); setSwitchTarget(null); }}>
+              Switch Plan
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
