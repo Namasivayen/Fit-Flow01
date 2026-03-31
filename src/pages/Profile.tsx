@@ -128,6 +128,9 @@ export default function Profile() {
         </Card>
       )}
 
+      {/* Workout Schedule */}
+      <WorkoutSchedule />
+
       {/* Profile Info */}
       <Card>
         <CardHeader className="pb-2">
