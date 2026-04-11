@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Dumbbell, ArrowLeft, Clock, BarChart3, Filter, ArrowRight } from "lucide-react";
 
 const categories = ["All", "Strength & Workouts", "Cardio Conditioning", "Yoga & Mobility", "Targeted Exercises", "Physical Activities"];
@@ -26,7 +25,6 @@ const Roadmaps = () => {
   const [category, setCategory] = useState("All");
   const [difficulty, setDifficulty] = useState("All");
   const [activeRoadmap, setActiveRoadmap] = useState<any>(null);
-  const [switchTarget, setSwitchTarget] = useState<string | null>(null);
 
   useEffect(() => {
     const fetch = async () => {
@@ -51,14 +49,6 @@ const Roadmaps = () => {
       .then(({ data }) => setActiveRoadmap(data));
   }, [user]);
 
-  const handleStartPlan = (roadmapId: string) => {
-    if (activeRoadmap && activeRoadmap.roadmap_id !== roadmapId) {
-      setSwitchTarget(roadmapId);
-    } else {
-      activateRoadmap(roadmapId);
-    }
-  };
-
   const activateRoadmap = async (roadmapId: string) => {
     if (!user) return;
     if (activeRoadmap) {
@@ -74,14 +64,6 @@ const Roadmaps = () => {
       current_day: 1,
     });
     if (!error) {
-      setActiveRoadmap(null);
-      const { data } = await supabase
-        .from("user_roadmaps")
-        .select("*, fitness_roadmaps(*)")
-        .eq("user_id", user.id)
-        .eq("is_active", true)
-        .maybeSingle();
-      setActiveRoadmap(data);
       navigate("/workout");
     }
   };
@@ -182,9 +164,9 @@ const Roadmaps = () => {
                     className="w-full"
                     variant={activeRoadmap?.roadmap_id === rm.id ? "secondary" : "default"}
                     disabled={activeRoadmap?.roadmap_id === rm.id}
-                    onClick={() => handleStartPlan(rm.id)}
+                    onClick={() => activateRoadmap(rm.id)}
                   >
-                    {activeRoadmap?.roadmap_id === rm.id ? "Currently Active" : activeRoadmap ? "Switch to This Plan" : "Start This Plan"}
+                    {activeRoadmap?.roadmap_id === rm.id ? "Currently Active" : "Start This Plan"}
                   </Button>
                 </CardContent>
               </Card>
@@ -192,24 +174,6 @@ const Roadmaps = () => {
           </div>
         )}
       </main>
-
-      {/* Switch Roadmap Confirmation */}
-      <AlertDialog open={!!switchTarget} onOpenChange={(open) => !open && setSwitchTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Switch Roadmap?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Your current plan progress ({activeRoadmap?.fitness_roadmaps?.title} — Day {activeRoadmap?.current_day}) will be saved but marked as inactive. You'll start the new plan from Day 1.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Keep Current Plan</AlertDialogCancel>
-            <AlertDialogAction onClick={() => { if (switchTarget) activateRoadmap(switchTarget); setSwitchTarget(null); }}>
-              Switch Plan
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
