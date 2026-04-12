@@ -6,6 +6,14 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+async function hashOTP(code: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(code);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -28,7 +36,10 @@ Deno.serve(async (req) => {
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await userClient.auth.getUser();
     if (userError || !user) {
       return new Response(JSON.stringify({ error: "Invalid session" }), {
         status: 401,
@@ -41,9 +52,15 @@ Deno.serve(async (req) => {
     if (!code || typeof code !== "string" || code.length !== 6) {
       return new Response(
         JSON.stringify({ error: "Invalid OTP format" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
+
+    // Hash the submitted code to compare with stored hash
+    const hashedCode = await hashOTP(code);
 
     // Find the latest unexpired, unverified OTP for this user
     const { data: otpRecord, error: otpError } = await supabase
@@ -58,20 +75,27 @@ Deno.serve(async (req) => {
 
     if (otpError || !otpRecord) {
       return new Response(
-        JSON.stringify({ error: "OTP expired or not found. Please request a new one." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "OTP expired or not found. Please request a new one.",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
     // Check max attempts (5)
     if (otpRecord.attempts >= 5) {
-      await supabase
-        .from("otp_codes")
-        .delete()
-        .eq("id", otpRecord.id);
+      await supabase.from("otp_codes").delete().eq("id", otpRecord.id);
       return new Response(
-        JSON.stringify({ error: "Too many attempts. Please request a new OTP." }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "Too many attempts. Please request a new OTP.",
+        }),
+        {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
@@ -81,20 +105,22 @@ Deno.serve(async (req) => {
       .update({ attempts: otpRecord.attempts + 1 })
       .eq("id", otpRecord.id);
 
-    // Verify code
-    if (otpRecord.code !== code) {
+    // Compare hashed code
+    if (otpRecord.code !== hashedCode) {
       const remaining = 4 - otpRecord.attempts;
       return new Response(
-        JSON.stringify({ error: `Invalid OTP. ${remaining} attempts remaining.` }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: `Invalid OTP. ${remaining} attempts remaining.`,
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
-    // Mark as verified
-    await supabase
-      .from("otp_codes")
-      .update({ verified: true })
-      .eq("id", otpRecord.id);
+    // Mark as verified (single-use: delete after verification)
+    await supabase.from("otp_codes").delete().eq("id", otpRecord.id);
 
     // Trust the device if fingerprint provided
     if (deviceFingerprint) {
@@ -117,7 +143,10 @@ Deno.serve(async (req) => {
     console.error("verify-otp error:", error);
     return new Response(
       JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
     );
   }
 });

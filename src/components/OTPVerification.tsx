@@ -21,7 +21,6 @@ const OTPVerification = ({ userEmail, onVerified, onCancel }: OTPVerificationPro
   const [sending, setSending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [otpSent, setOtpSent] = useState(false);
-  const [devCode, setDevCode] = useState<string | null>(null);
 
   const sendOTP = useCallback(async () => {
     setSending(true);
@@ -31,10 +30,6 @@ const OTPVerification = ({ userEmail, onVerified, onCancel }: OTPVerificationPro
       });
 
       if (error) throw error;
-
-      if (data?.devCode) {
-        setDevCode(data.devCode);
-      }
 
       setOtpSent(true);
       setCooldown(COOLDOWN_SECONDS);
@@ -125,15 +120,6 @@ const OTPVerification = ({ userEmail, onVerified, onCancel }: OTPVerificationPro
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Dev mode code display */}
-            {devCode && (
-              <div className="rounded-lg bg-accent/10 border border-accent/30 p-3 text-center">
-                <p className="text-xs text-muted-foreground mb-1">Dev Mode — OTP Code:</p>
-                <p className="text-2xl font-mono font-bold text-accent tracking-widest">
-                  {devCode}
-                </p>
-              </div>
-            )}
 
             {/* OTP Input */}
             <div className="flex justify-center">
