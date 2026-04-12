@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { Dumbbell, Mail, Lock, Phone } from "lucide-react";
-import { getDeviceFingerprint } from "@/lib/device-fingerprint";
+
 import OTPVerification from "@/components/OTPVerification";
 
 type LoginStep = "credentials" | "otp";
